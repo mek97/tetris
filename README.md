@@ -1,5 +1,11 @@
 # Tetris
 
-Android Tetris game project
+Tetris game for Android
 
-![Sample](images/app_img.png)
+<img src="images/game_start.png" width="200">.  <img src="images/game_play.png" width="200">.  <img src="images/game_over.png" width="200">
+
+
+# Build
+```bash
+ ./gradlew assembleDebug
+```
