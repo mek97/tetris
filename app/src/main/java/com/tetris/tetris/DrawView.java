@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.view.View;
 
 class DrawView extends View {
-    int delay;
     int yOffset;
     Paint paint;
     GameState gameState;
@@ -17,7 +16,6 @@ class DrawView extends View {
         paint = new Paint();
         paint.setColor(Color.BLUE);
         yOffset = 200;
-        delay = 500;
         this.gameState = gameState;
     }
 
@@ -124,7 +122,7 @@ class DrawView extends View {
             DrawTetramino(gameState.falling, canvas);
             paint.setColor(Color.BLACK);
             paint.setTextSize(200);
-            canvas.drawText("Game Over", 60, 800, paint);
+            canvas.drawText(getResources().getString(R.string.game_over), 60, 800, paint);
             PrintScore(gameState.score, canvas);
         }
 

@@ -9,7 +9,7 @@ class GameState {
     boolean pause;
     BasicBlock[][] board;
     Tetramino falling;
-    int difficulty;
+    boolean difficultMode;
     private int rows;
     private int columns;
     private Integer ctr;
@@ -23,7 +23,7 @@ class GameState {
         ctr = 0;
         score = 0;
         this.status = true;
-        difficulty = 1;
+        difficultMode = false;
 
         board = new BasicBlock[rows][columns];
         for (int row = 0; row < rows; row++) {

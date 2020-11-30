@@ -26,6 +26,9 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     Button difficultyToggle;
     Handler handler;
     Runnable loop;
+    int delayFactor;
+    int delay;
+    int delayLowerLimit;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,10 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
         game = new FrameLayout(this);
         gameButtons = new RelativeLayout(this);
+
+        delay = 500;
+        delayLowerLimit = 200;
+        delayFactor = 2;
 
         left = new Button(this);
         left.setText(R.string.left);
@@ -61,8 +68,8 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         score.setTextSize(30);
 
         difficultyToggle = new Button(this);
-        difficultyToggle.setText(R.string.fast);
-        difficultyToggle.setId(R.id.fast);
+        difficultyToggle.setText(R.string.easy);
+        difficultyToggle.setId(R.id.difficulty);
 
         RelativeLayout.LayoutParams rl = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         RelativeLayout.LayoutParams leftButton = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -121,29 +128,33 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
         View pauseButtonListener = findViewById(R.id.pause);
         pauseButtonListener.setOnClickListener(this);
 
-        View speedButtonListener = findViewById(R.id.fast);
+        View speedButtonListener = findViewById(R.id.difficulty);
         speedButtonListener.setOnClickListener(this);
 
         handler = new Handler(Looper.getMainLooper());
         loop = new Runnable() {
             public void run() {
-                if (gameState.status && !gameState.pause) {
-                    boolean success = gameState.moveFallingTetraminoDown();
-                    if (!success) {
-                        gameState.paintTetramino(gameState.falling);
-                        gameState.lineRemove();
+                if (gameState.status) {
+                    if (!gameState.pause) {
+                        boolean success = gameState.moveFallingTetraminoDown();
+                        if (!success) {
+                            gameState.paintTetramino(gameState.falling);
+                            gameState.lineRemove();
 
-                        gameState.pushNewTetramino(TetraminoType.getRandomTetramino());
+                            gameState.pushNewTetramino(TetraminoType.getRandomTetramino());
 
-                        if (gameState.score % 10 == 9 && drawView.delay >= 200) {
-                            drawView.delay = drawView.delay / 2 + 1;
+                            if (gameState.score % 10 == 9 && delay >= delayLowerLimit) {
+                                delay = delay / delayFactor + 1;
+                            }
+                            gameState.incrementScore();
                         }
-                        gameState.incrementScore();
+                        drawView.invalidate();
+                        handler.postDelayed(this, delay);
+                    } else {
+                        handler.postDelayed(this, delay);
                     }
-                    drawView.invalidate();
-                    handler.postDelayed(this, drawView.delay);
-                } else if (gameState.pause) {
-                    handler.postDelayed(this, drawView.delay);
+                } else {
+                    pause.setText(R.string.start_new_game);
                 }
             }
 
@@ -180,15 +191,15 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
 
             }
         } else if (action == difficultyToggle) {
-            if (gameState.difficulty == 1) {
-                drawView.delay = drawView.delay / 2;
-                gameState.difficulty = 2;
-                difficultyToggle.setText(R.string.slow);
+            if (!gameState.difficultMode) {
+                delay = delay / delayFactor;
+                gameState.difficultMode = true;
+                difficultyToggle.setText(R.string.hard);
 
             } else {
-                drawView.delay = drawView.delay * 2;
-                difficultyToggle.setText(R.string.fast);
-                gameState.difficulty = 1;
+                delay = delay * delayFactor;
+                difficultyToggle.setText(R.string.easy);
+                gameState.difficultMode = false;
 
             }
         }
