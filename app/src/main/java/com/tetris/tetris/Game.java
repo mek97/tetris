@@ -12,8 +12,6 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.util.Random;
-
 public class Game extends AppCompatActivity implements View.OnClickListener {
 
     DrawView drawView;
@@ -33,10 +31,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final Random randomGenerator = new Random();
-
-        int tetraminoType = randomGenerator.nextInt(7) + 1;
-        gameState = new GameState(24, 20, tetraminoType);
+        gameState = new GameState(24, 20, TetraminoType.getRandomTetramino());
 
         drawView = new DrawView(this, gameState);
         drawView.setBackgroundColor(Color.WHITE);
@@ -138,8 +133,7 @@ public class Game extends AppCompatActivity implements View.OnClickListener {
                         gameState.paintTetramino(gameState.falling);
                         gameState.lineRemove();
 
-                        int tetraminoType = randomGenerator.nextInt(7) + 1;
-                        gameState.pushNewTetramino(tetraminoType);
+                        gameState.pushNewTetramino(TetraminoType.getRandomTetramino());
 
                         if (gameState.score % 10 == 9 && drawView.delay >= 200) {
                             drawView.delay = drawView.delay / 2 + 1;

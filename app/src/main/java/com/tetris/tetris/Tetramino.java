@@ -1,98 +1,150 @@
 package com.tetris.tetris;
 
+import java.util.Random;
+
+enum TetraminoType {
+    SQUARE_SHAPED,
+    T_SHAPED,
+    L_SHAPED,
+    LINE_SHAPED,
+    Z_SHAPED,
+    INV_L_SHAPED,
+    INV_Z_SHAPED;
+
+    private static final TetraminoType[] VALUES = values();
+    private static final int SIZE = VALUES.length;
+    private static final Random RANDOM = new Random();
+
+    public static TetraminoType getRandomTetramino() {
+        return VALUES[RANDOM.nextInt(SIZE)];
+    }
+}
+
 class Tetramino {
     BasicBlock[] blocks;
+    TetraminoType type;
 
-    Tetramino() {
-        blocks = new BasicBlock[4];
-    }
+    Tetramino(TetraminoType type, int tetraId) {
+        Coordinate[] coordinates;
 
-    Tetramino(int type, int tetraId) {
-        blocks = new BasicBlock[4];
-
-        if (type == 1) {
-            blocks[0] = new BasicBlock(1, 1, tetraId, new Coordinate(0, 10), -1);
-            blocks[1] = new BasicBlock(1, 1, tetraId, new Coordinate(1, 10), -1);
-            blocks[2] = new BasicBlock(1, 1, tetraId, new Coordinate(1, 11), -1);
-            blocks[3] = new BasicBlock(1, 1, tetraId, new Coordinate(0, 11), -1);
-        } else if (type == 2) {
-            blocks[0] = new BasicBlock(2, 2, tetraId, new Coordinate(0, 10), -1);
-            blocks[1] = new BasicBlock(2, 2, tetraId, new Coordinate(0, 11), -1);
-            blocks[2] = new BasicBlock(2, 2, tetraId, new Coordinate(1, 10), -1);
-            blocks[3] = new BasicBlock(2, 2, tetraId, new Coordinate(2, 10), -1);
-
-        } else if (type == 3) {
-            blocks[0] = new BasicBlock(3, 3, tetraId, new Coordinate(0, 11), -1);
-            blocks[1] = new BasicBlock(3, 3, tetraId, new Coordinate(0, 10), -1);
-            blocks[2] = new BasicBlock(3, 3, tetraId, new Coordinate(1, 11), -1);
-            blocks[3] = new BasicBlock(3, 3, tetraId, new Coordinate(2, 11), -1);
-
-        } else if (type == 4) {
-            blocks[0] = new BasicBlock(4, 4, tetraId, new Coordinate(1, 10), -1);
-            blocks[1] = new BasicBlock(4, 4, tetraId, new Coordinate(0, 10), -1);
-            blocks[2] = new BasicBlock(4, 4, tetraId, new Coordinate(1, 11), -1);
-            blocks[3] = new BasicBlock(4, 4, tetraId, new Coordinate(2, 10), -1);
-
-        } else if (type == 5) {
-            blocks[0] = new BasicBlock(5, 5, tetraId, new Coordinate(1, 11), -1);
-            blocks[1] = new BasicBlock(5, 5, tetraId, new Coordinate(1, 10), -1);
-            blocks[2] = new BasicBlock(5, 5, tetraId, new Coordinate(0, 10), -1);
-            blocks[3] = new BasicBlock(5, 5, tetraId, new Coordinate(2, 11), -1);
-        } else if (type == 6) {
-            blocks[0] = new BasicBlock(6, 6, tetraId, new Coordinate(1, 11), -1);
-            blocks[1] = new BasicBlock(6, 6, tetraId, new Coordinate(0, 11), -1);
-            blocks[2] = new BasicBlock(6, 6, tetraId, new Coordinate(1, 10), -1);
-            blocks[3] = new BasicBlock(6, 6, tetraId, new Coordinate(2, 10), -1);
-
-        } else if (type == 7) {
-            blocks[0] = new BasicBlock(7, 7, tetraId, new Coordinate(0, 10), -1);
-            blocks[1] = new BasicBlock(7, 7, tetraId, new Coordinate(1, 10), -1);
-            blocks[2] = new BasicBlock(7, 7, tetraId, new Coordinate(2, 10), -1);
-            blocks[3] = new BasicBlock(7, 7, tetraId, new Coordinate(3, 10), -1);
+        switch (type) {
+            case SQUARE_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(0, 10),
+                        new Coordinate(1, 10),
+                        new Coordinate(1, 11),
+                        new Coordinate(0, 11)
+                };
+                blocks = this.blocksGenerator(tetraId, 1, coordinates);
+                break;
+            case INV_L_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(0, 10),
+                        new Coordinate(0, 11),
+                        new Coordinate(1, 10),
+                        new Coordinate(2, 10)
+                };
+                blocks = this.blocksGenerator(tetraId, 2, coordinates);
+                break;
+            case L_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(0, 11),
+                        new Coordinate(0, 10),
+                        new Coordinate(1, 11),
+                        new Coordinate(2, 11)
+                };
+                blocks = this.blocksGenerator(tetraId, 3, coordinates);
+                break;
+            case T_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(1, 10),
+                        new Coordinate(0, 10),
+                        new Coordinate(1, 11),
+                        new Coordinate(2, 10)
+                };
+                blocks = this.blocksGenerator(tetraId, 4, coordinates);
+                break;
+            case Z_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(1, 11),
+                        new Coordinate(1, 10),
+                        new Coordinate(0, 10),
+                        new Coordinate(2, 11)
+                };
+                blocks = this.blocksGenerator(tetraId, 5, coordinates);
+                break;
+            case INV_Z_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(1, 11),
+                        new Coordinate(0, 11),
+                        new Coordinate(1, 10),
+                        new Coordinate(2, 10)
+                };
+                blocks = this.blocksGenerator(tetraId, 6, coordinates);
+                break;
+            case LINE_SHAPED:
+                coordinates = new Coordinate[]{
+                        new Coordinate(0, 10),
+                        new Coordinate(1, 10),
+                        new Coordinate(2, 10),
+                        new Coordinate(3, 10)
+                };
+                blocks = this.blocksGenerator(tetraId, 7, coordinates);
+                break;
         }
     }
 
-    BasicBlock getBlock(int pos) {
-        return this.blocks[pos];
+    private Tetramino(BasicBlock[] blocks) {
+
+        this.blocks = blocks;
+    }
+
+    private BasicBlock[] blocksGenerator(int tetraId, int colour, Coordinate[] coordinates) {
+        BasicBlock[] blocks = new BasicBlock[coordinates.length];
+        for (int itr = 0; itr < coordinates.length; itr++) {
+            blocks[itr] = new BasicBlock(colour, tetraId, coordinates[itr], BasicBlockState.ON_TETRAMINO);
+        }
+        return blocks;
     }
 
     Tetramino copy(int tetraId) {
-        BasicBlock[] blocks = new BasicBlock[4];
-        for (int i = 0; i < 4; i++) {
-            blocks[i] = this.blocks[i].copy();
-            blocks[i].tetraId = tetraId;
+        BasicBlock[] newBlocks = new BasicBlock[this.blocks.length];
+        for (int itr = 0; itr < this.blocks.length; itr++) {
+            newBlocks[itr] = this.blocks[itr].copy();
+            newBlocks[itr].tetraId = tetraId;
         }
-        Tetramino tetramino = new Tetramino();
-        tetramino.blocks = blocks;
-        return tetramino;
+        return new Tetramino(newBlocks);
     }
 
     void moveDown() {
 
-        for (int i = 0; i < 4; i++) {
-            blocks[i].coordinate.y++;
+        for (BasicBlock block : blocks) {
+            block.coordinate.y++;
         }
     }
 
     void moveLeft() {
 
-        for (int i = 0; i < 4; i++) {
-            blocks[i].coordinate.x--;
+        for (BasicBlock block : blocks) {
+            block.coordinate.x--;
         }
     }
 
     void moveRight() {
 
-        for (int i = 0; i < 4; i++) {
-            blocks[i].coordinate.x++;
+        for (BasicBlock block : blocks) {
+            block.coordinate.x++;
         }
     }
 
     void performClockWiseRotation() {
 
-        for (int i = 0; i < 4; i++) {
-            Coordinate baseCoordinate = Coordinate.sub(blocks[i].coordinate, blocks[0].coordinate);
-            blocks[i].coordinate = Coordinate.add(Coordinate.rotateAntiClock(baseCoordinate), blocks[0].coordinate);
+        BasicBlock referenceBlock = blocks[0];
+
+        for (BasicBlock block : blocks) {
+            Coordinate baseCoordinate = Coordinate.sub(block.coordinate, referenceBlock.coordinate);
+            block.coordinate = Coordinate.add(Coordinate.rotateAntiClock(baseCoordinate), referenceBlock.coordinate);
         }
     }
+
 }
