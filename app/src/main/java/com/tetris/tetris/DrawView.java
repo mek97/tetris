@@ -21,13 +21,35 @@ class DrawView extends View {
         this.gameState = gameState;
     }
 
+    private int getBlockColorCode(int color) {
+        switch (color) {
+            case 1:
+                return Color.BLUE;
+            case 2:
+                return Color.YELLOW;
+            case 3:
+                return Color.RED;
+            case 4:
+                return Color.GREEN;
+            case 5:
+                return Color.CYAN;
+            case 6:
+                return Color.MAGENTA;
+            case 7:
+                return Color.DKGRAY;
+            default:
+                return Color.TRANSPARENT;
+        }
+
+    }
+
     private void DrawMatrix(BasicBlock[][] matrix, Canvas canvas) {
         for (int i = 0; i < 24; i++) {
             for (int j = 0; j < 20; j++) {
-                if (matrix[i][j].active == 0)
+                if (matrix[i][j].state == BasicBlockState.ON_EMPTY)
                     continue;
 
-                int color = matrix[i][j].getColor(matrix[i][j].colour);
+                int color = this.getBlockColorCode(matrix[i][j].colour);
                 Paint p = new Paint();
                 p.setColor(color);
                 canvas.drawRect(42 + j * 50, yOffset + i * 50 + 2, 88 + j * 50, yOffset + (i + 1) * 50 - 2, p);
@@ -45,12 +67,13 @@ class DrawView extends View {
         }
     }
 
-    private void DrawTetramino(Tetramino piece, Canvas canvas) {
-        for (int j = 0; j < 4; j++) {
-            int color = piece.blocks[j].getColor(piece.blocks[j].colour);
+    private void DrawTetramino(Tetramino tetramino, Canvas canvas) {
+        for (BasicBlock block : tetramino.blocks) {
+            int color = this.getBlockColorCode(block.colour);
             Paint p = new Paint();
             p.setColor(color);
-            canvas.drawRect(42 + piece.blocks[j].coordinate.x * 50, yOffset + piece.blocks[j].coordinate.y * 50 + 2, 88 + piece.blocks[j].coordinate.x * 50, yOffset + (piece.blocks[j].coordinate.y + 1) * 50 - 2, p);
+            canvas.drawRect(42 + block.coordinate.x * 50, yOffset + block.coordinate.y * 50 + 2, 88 + block.coordinate.x * 50, yOffset + (block.coordinate.y + 1) * 50 - 2, p);
+
         }
     }
 

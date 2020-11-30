@@ -4,18 +4,18 @@ import android.util.SparseArray;
 
 class GameState {
 
-    int rows;
-    int columns;
     boolean status;
-    Integer ctr;
     int score;
     boolean pause;
     BasicBlock[][] board;
     Tetramino falling;
-    SparseArray<Tetramino> tetraminos;
     int difficulty;
+    private int rows;
+    private int columns;
+    private Integer ctr;
+    private SparseArray<Tetramino> tetraminos;
 
-    GameState(int rows, int columns, int FallingTetraminoType) {
+    GameState(int rows, int columns, TetraminoType fallingTetraminoType) {
 
         this.rows = rows;
         this.columns = columns;
@@ -23,43 +23,41 @@ class GameState {
         ctr = 0;
         score = 0;
         this.status = true;
+        difficulty = 1;
 
         board = new BasicBlock[rows][columns];
         for (int row = 0; row < rows; row++) {
             for (int column = 0; column < columns; column++) {
-                board[row][column] = new BasicBlock(-1, -1, -1, new Coordinate(row, column), 0);
+                board[row][column] = new BasicBlock(row, column);
             }
         }
 
         tetraminos = new SparseArray<>();
 
-        falling = new Tetramino(FallingTetraminoType, this.ctr);
+        falling = new Tetramino(fallingTetraminoType, this.ctr);
 
         tetraminos.put(this.ctr, falling);
-
-        difficulty = 1;
-
     }
 
-    BasicBlock getCoordinateBlock(Coordinate A) {
+    private BasicBlock getCoordinateBlock(Coordinate coordinate) {
 
-        return this.board[A.y][A.x];
+        return this.board[coordinate.y][coordinate.x];
     }
 
-    boolean isConflicting(Coordinate X) {
+    private boolean isConflicting(Coordinate coordinate) {
 
-        if (X.x < 0 || X.x >= this.columns || X.y < 0 || X.y >= this.rows)
+        if (coordinate.x < 0 || coordinate.x >= this.columns || coordinate.y < 0 || coordinate.y >= this.rows)
             return true;
 
-        return this.getCoordinateBlock(X).active == -1;
+        return this.getCoordinateBlock(coordinate).state == BasicBlockState.ON_TETRAMINO;
 
     }
 
-    boolean canTetraminoDisplace(Tetramino tetramino, Coordinate displacement) {
+    private boolean canTetraminoDisplace(Tetramino tetramino, Coordinate displacement) {
 
-        for (int pos = 0; pos < 4; pos++) {
-            if (tetramino.getBlock(pos).isActive()) {
-                Coordinate shifted = Coordinate.add(tetramino.blocks[pos].coordinate, displacement);
+        for (BasicBlock block : tetramino.blocks) {
+            if (block.state == BasicBlockState.ON_TETRAMINO) {
+                Coordinate shifted = Coordinate.add(block.coordinate, displacement);
                 if (isConflicting(shifted)) {
                     return false;
                 }
@@ -100,15 +98,16 @@ class GameState {
     }
 
     boolean rotateFallingTetraminoAntiClock() {
-        if (falling.blocks[0].type == 1) {
+        if (falling.type == TetraminoType.SQUARE_SHAPED) {
             return true;
         } else {
-            for (int pos = 0; pos < 4; pos++) {
-                if (!falling.getBlock(pos).isActive())
+            for (BasicBlock block : falling.blocks) {
+                if (block.state == BasicBlockState.ON_EMPTY)
                     continue;
 
-                Coordinate baseCoordinate = Coordinate.sub(falling.getBlock(pos).coordinate, falling.getBlock(0).coordinate);
-                if (isConflicting(Coordinate.add(Coordinate.rotateAntiClock(baseCoordinate), falling.getBlock(0).coordinate))) {
+                BasicBlock referenceBlock = falling.blocks[0];
+                Coordinate baseCoordinate = Coordinate.sub(block.coordinate, referenceBlock.coordinate);
+                if (isConflicting(Coordinate.add(Coordinate.rotateAntiClock(baseCoordinate), referenceBlock.coordinate))) {
                     return false;
                 }
             }
@@ -118,36 +117,37 @@ class GameState {
     }
 
     void paintTetramino(Tetramino tetramino) {
-        for (int pos = 0; pos < 4; pos++) {
-            if (!tetramino.getBlock(pos).isActive())
+        for (BasicBlock block : tetramino.blocks) {
+            if (block.state == BasicBlockState.ON_EMPTY)
                 continue;
-            BasicBlock basicBlock = tetramino.getBlock(pos);
-            this.getCoordinateBlock(basicBlock.coordinate).set(basicBlock);
+            this.getCoordinateBlock(block.coordinate).set(block);
         }
     }
 
-    void pushNewTetramino(int tetraminoType) {
+    void pushNewTetramino(TetraminoType tetraminoType) {
         this.ctr++;
 
         falling = new Tetramino(tetraminoType, this.ctr);
         this.tetraminos.put(this.ctr, falling);
-        for (int pos = 0; pos < 4; pos++) {
-            if (this.getCoordinateBlock(this.falling.blocks[pos].coordinate).active == -1)
+        for (BasicBlock block : falling.blocks) {
+            if (this.getCoordinateBlock(block.coordinate).state == BasicBlockState.ON_TETRAMINO)
                 this.status = false;
         }
     }
 
     void incrementScore() {
+
         this.score++;
     }
 
     void lineRemove() {
-        boolean removeLines = false;
+        boolean removeLines;
         do {
+            removeLines = false;
             for (int row = this.rows - 1; row >= 0; row--) {
                 boolean rowIsALine = true;
                 for (int column = 0; column < this.columns; column++) {
-                    if (this.board[row][column].active == 0) {
+                    if (this.board[row][column].state != BasicBlockState.ON_TETRAMINO) {
                         rowIsALine = false;
                         break;
                     }
@@ -157,44 +157,46 @@ class GameState {
                 }
 
                 for (int column = 0; column < this.columns; column++) {
-                    this.board[row][column].active = 0;
-
                     Tetramino tetramino = this.tetraminos.get((this.board[row][column].tetraId));
 
-                    if (tetramino == null)
-                        continue;
+                    BasicBlock blockToClear = this.board[row][column];
+                    blockToClear.setEmptyBlock(blockToClear.coordinate);
 
-                    for (int pos = 0; pos < 4; pos++) {
-                        if (tetramino.blocks[pos].active == 0) {
+                    if (tetramino == null) {
+                        continue;
+                    }
+
+                    for (BasicBlock block : tetramino.blocks) {
+                        if (block.state == BasicBlockState.ON_EMPTY) {
                             continue;
                         }
 
-                        if (tetramino.blocks[pos].coordinate.y == row && tetramino.blocks[pos].coordinate.x == column) {
-                            tetramino.blocks[pos].active = 0;
+                        if (block.coordinate.y == row && block.coordinate.x == column) {
+                            block.state = BasicBlockState.ON_EMPTY;
 
                             this.ctr++;
                             Tetramino upperTetramino = tetramino.copy(this.ctr);
                             this.tetraminos.put(this.ctr, upperTetramino);
-                            for (int s = 0; s < 4; s++) {
-                                if (upperTetramino.blocks[s].coordinate.y >= tetramino.blocks[pos].coordinate.y) {
-                                    upperTetramino.blocks[s].active = 0;
+                            for (BasicBlock upperBlock : upperTetramino.blocks) {
+                                if (upperBlock.coordinate.y >= block.coordinate.y) {
+                                    upperBlock.state = BasicBlockState.ON_EMPTY;
                                 } else {
-                                    this.getCoordinateBlock(upperTetramino.blocks[s].coordinate).tetraId = upperTetramino.blocks[s].tetraId;
+                                    this.getCoordinateBlock(upperBlock.coordinate).tetraId = upperBlock.tetraId;
                                 }
                             }
 
                             this.ctr++;
                             Tetramino lowerTetramino = tetramino.copy(this.ctr);
                             this.tetraminos.put(this.ctr, lowerTetramino);
-                            for (int s = 0; s < 4; s++) {
-                                if (lowerTetramino.blocks[s].coordinate.y <= tetramino.blocks[pos].coordinate.y) {
-                                    lowerTetramino.blocks[s].active = 0;
+                            for (BasicBlock lowerBlock : lowerTetramino.blocks) {
+                                if (lowerBlock.coordinate.y <= block.coordinate.y) {
+                                    lowerBlock.state = BasicBlockState.ON_EMPTY;
                                 } else {
-                                    this.getCoordinateBlock(lowerTetramino.blocks[s].coordinate).tetraId = lowerTetramino.blocks[s].tetraId;
+                                    this.getCoordinateBlock(lowerBlock.coordinate).tetraId = lowerBlock.tetraId;
                                 }
                             }
 
-                            this.tetraminos.remove(tetramino.blocks[pos].tetraId);
+                            this.tetraminos.remove(block.tetraId);
                             break;
                         }
 
@@ -220,15 +222,16 @@ class GameState {
     }
 
     private void shiftTillBottom(Tetramino tetramino) {
-        boolean shiftTillBottom = false;
+        boolean shiftTillBottom;
         do {
             boolean shouldShiftDown = true;
+            shiftTillBottom = false;
 
-            for (int i = 0; i < 4; i++) {
-                if (tetramino.blocks[i].active == 0)
+            for (BasicBlock block : tetramino.blocks) {
+                if (block.state == BasicBlockState.ON_EMPTY)
                     continue;
 
-                Coordinate newCoordinate = Coordinate.add(tetramino.blocks[i].coordinate, new Coordinate(1, 0));
+                Coordinate newCoordinate = Coordinate.add(block.coordinate, new Coordinate(1, 0));
 
                 if (isTetraPresent(newCoordinate, tetramino))
                     continue;
@@ -238,21 +241,21 @@ class GameState {
             }
 
             if (shouldShiftDown) {
-                for (int i = 0; i < 4; i++) {
-                    if (tetramino.blocks[i].active == 0)
+                for (BasicBlock block : tetramino.blocks) {
+                    if (block.state == BasicBlockState.ON_EMPTY)
                         continue;
 
-                    this.getCoordinateBlock(tetramino.blocks[i].coordinate).set(-1, -1, -1, tetramino.blocks[i].coordinate, 0);
+                    this.getCoordinateBlock(block.coordinate).setEmptyBlock(block.coordinate);
 
 
-                    tetramino.blocks[i].coordinate.y++;
+                    block.coordinate.y++;
                 }
 
-                for (int i = 0; i < 4; i++) {
-                    if (tetramino.blocks[i].active == 0)
+                for (BasicBlock block : tetramino.blocks) {
+                    if (block.state == BasicBlockState.ON_EMPTY)
                         continue;
 
-                    this.getCoordinateBlock(tetramino.blocks[i].coordinate).set(tetramino.blocks[i]);
+                    this.getCoordinateBlock(block.coordinate).set(block);
 
                 }
                 shiftTillBottom = true;
@@ -260,12 +263,12 @@ class GameState {
         } while (shiftTillBottom);
     }
 
-    private boolean isTetraPresent(Coordinate D, Tetramino T) {
-        for (int pos = 0; pos < 4; pos++) {
-            if (T.blocks[pos].active == 0)
+    private boolean isTetraPresent(Coordinate coordinate, Tetramino tetramino) {
+        for (BasicBlock block : tetramino.blocks) {
+            if (block.state == BasicBlockState.ON_EMPTY)
                 continue;
 
-            if (Coordinate.isEqual(T.blocks[pos].coordinate, D))
+            if (Coordinate.isEqual(block.coordinate, coordinate))
                 return true;
 
         }

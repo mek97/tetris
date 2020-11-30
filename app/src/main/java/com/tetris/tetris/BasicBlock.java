@@ -1,71 +1,51 @@
 package com.tetris.tetris;
 
-import android.graphics.Color;
+enum BasicBlockState {
+    ON_EMPTY,
+    ON_TETRAMINO
+}
 
 class BasicBlock {
-    int type;
     int colour;
     int tetraId;
     Coordinate coordinate;
-    int active;
+    BasicBlockState state;
 
-    BasicBlock(int type, int colour, int tetraId, Coordinate coordinate, int active) {
-        this.type = type;
+    BasicBlock(int row, int column) {
+        this.colour = -1;
+        this.tetraId = -1;
+        this.coordinate = new Coordinate(row, column);
+        this.state = BasicBlockState.ON_EMPTY;
+    }
+
+    BasicBlock(int colour, int tetraId, Coordinate coordinate, BasicBlockState state) {
         this.colour = colour;
         this.tetraId = tetraId;
         this.coordinate = coordinate;
-        this.active = active;
-
-    }
-
-    int getColor(int color) {
-        switch (color) {
-            case 1:
-                return Color.BLUE;
-            case 2:
-                return Color.YELLOW;
-            case 3:
-                return Color.RED;
-            case 4:
-                return Color.GREEN;
-            case 5:
-                return Color.CYAN;
-            case 6:
-                return Color.MAGENTA;
-            case 7:
-                return Color.DKGRAY;
-            default:
-                return Color.TRANSPARENT;
-        }
+        this.state = state;
 
     }
 
     BasicBlock copy() {
 
-        return new BasicBlock(type, colour, tetraId, coordinate, active);
-    }
-
-    void set(int type, int colour, int tetraId, Coordinate coordinate, int active) {
-        this.type = type;
-        this.colour = colour;
-        this.tetraId = tetraId;
-        this.coordinate.x = coordinate.x;
-        this.coordinate.y = coordinate.y;
-        this.active = active;
-
-    }
-
-    boolean isActive() {
-        return this.active == -1;
+        return new BasicBlock(colour, tetraId, coordinate, state);
     }
 
     void set(BasicBlock B) {
-        this.type = B.type;
         this.colour = B.colour;
         this.tetraId = B.tetraId;
         this.coordinate.y = B.coordinate.y;
         this.coordinate.x = B.coordinate.x;
-        this.active = B.active;
+        this.state = B.state;
+
+    }
+
+    void setEmptyBlock(Coordinate coordinate) {
+        this.colour = -1;
+        this.tetraId = -1;
+        this.coordinate.x = coordinate.x;
+        this.coordinate.y = coordinate.y;
+        this.state = BasicBlockState.ON_EMPTY;
 
     }
 }
